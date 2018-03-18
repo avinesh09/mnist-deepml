@@ -25,14 +25,19 @@ from __future__ import print_function
 import argparse
 import sys
 
+
 from tensorflow.examples.tutorials.mnist import input_data
 
 import tensorflow as tf
 from tensorflow.contrib.session_bundle import exporter
 
-FLAGS = None
-
-EXPORT_PATH = '/opt/model/'
+tf.app.flags.DEFINE_integer('training_iteration', 1000,
+                            'number of training iterations.')
+tf.app.flags.DEFINE_integer('model_version', 1, 'version number of the model.')
+tf.app.flags.DEFINE_string('data_dir', '/tmp/model/mnist/data', 'Working directory.')
+tf.app.flags.DEFINE_string('model_dir', '/opt/mnist/model', 'export model directory.')
+tf.app.flags.DEFINE_string('summary_dir', '/opt/mnist/summaries', 'summaries directory.')
+FLAGS = tf.app.flags.FLAGS
 
 
 def variable_summaries(var):
@@ -50,16 +55,29 @@ def variable_summaries(var):
 
 VERSION = 1
 
+def launch_tensorboard(summary_dir):
+    command = 'tensorboard --logdir=' + summary_dir + ' &'
+    if summary_dir:
+        import os
+        os.system(command)
+
+
 
 def main(_):
     # Import data
     mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
+    MODEL_EXPORT_PATH = FLAGS.model_dir
+    MODEL_SUMMARY_DIR = FLAGS.summary_dir
+    VERSION = FLAGS.model_version
+    iterations = FLAGS.training_iteration
 
     # Create the model
     x = tf.placeholder(tf.float32, [None, 784])
     W = tf.Variable(tf.zeros([784, 10]))
     b = tf.Variable(tf.zeros([10]))
     y = tf.matmul(x, W) + b
+
+    #launch_tensorboard(MODEL_SUMMARY_DIR)
 
     variable_summaries(W)
     variable_summaries(b)
@@ -91,11 +109,11 @@ def main(_):
 
     sess = tf.InteractiveSession()
     merged = tf.summary.merge_all()
-    train_writer = tf.summary.FileWriter(EXPORT_PATH + 'log' + '/train', sess.graph)
-    test_writer = tf.summary.FileWriter(EXPORT_PATH + 'log' + '/test')
+    train_writer = tf.summary.FileWriter(MODEL_SUMMARY_DIR + '/log' + '/train', sess.graph)
+    test_writer = tf.summary.FileWriter(MODEL_SUMMARY_DIR + '/log' + '/test')
     tf.global_variables_initializer().run()
     # Train
-    for i in range(1000):
+    for i in range(iterations):
         batch_xs, batch_ys = mnist.train.next_batch(100)
         if i % 10 == 0:  # Record summaries and test-set accuracy
             summary, acc = sess.run([merged, train_step], feed_dict={x: batch_xs, y_: batch_ys})
@@ -129,14 +147,10 @@ def main(_):
         named_graph_signatures={
             'inputs': exporter.generic_signature({'x': x}),
             'outputs': exporter.generic_signature({'pred': pred})})
-    model_exporter.export(EXPORT_PATH, tf.constant(VERSION), sess)
+    model_exporter.export(MODEL_EXPORT_PATH, tf.constant(VERSION), sess)
     train_writer.close()
     test_writer.close()
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', type=str, default='/tmp/tensorflow/mnist/input_data',
-                        help='Directory for storing input data')
-    FLAGS, unparsed = parser.parse_known_args()
-    tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+    tf.app.run()
