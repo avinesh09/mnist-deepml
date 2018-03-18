@@ -95,7 +95,7 @@ def main(_):
     test_writer = tf.summary.FileWriter(EXPORT_PATH + 'log' + '/test')
     tf.global_variables_initializer().run()
     # Train
-    for i in range(10000):
+    for i in range(1000):
         batch_xs, batch_ys = mnist.train.next_batch(100)
         if i % 10 == 0:  # Record summaries and test-set accuracy
             summary, acc = sess.run([merged, train_step], feed_dict={x: batch_xs, y_: batch_ys})
