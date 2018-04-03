@@ -37,7 +37,7 @@ from tensorflow.contrib import predictor
 
 import mnist_input_data
 
-tf.app.flags.DEFINE_integer('training_iteration', 50000,
+tf.app.flags.DEFINE_integer('training_iteration', 10000,
                             'number of training iterations.')
 tf.app.flags.DEFINE_integer('model_version', 1, 'version number of the model.')
 tf.app.flags.DEFINE_string('data_dir', '/tmp/model/mnist/data', 'Working directory.')
