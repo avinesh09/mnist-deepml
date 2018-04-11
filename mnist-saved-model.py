@@ -109,7 +109,8 @@ def main(_):
   test_writer = tf.summary.FileWriter(MODEL_SUMMARY_DIR + '/log' + '/test')
 
   for _ in range(FLAGS.training_iteration):
-    print("training model with batch ",_)
+    if _%200 == 0:
+        print("training model with batch ",_)
     batch = mnist.train.next_batch(100)
     train_step.run(feed_dict={x: batch[0], y_: batch[1]})
   print("training done, performing other functions.")
