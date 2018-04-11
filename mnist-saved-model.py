@@ -109,8 +109,10 @@ def main(_):
   test_writer = tf.summary.FileWriter(MODEL_SUMMARY_DIR + '/log' + '/test')
 
   for _ in range(FLAGS.training_iteration):
-    batch = mnist.train.next_batch(50)
+    print("training model with batch ",_)
+    batch = mnist.train.next_batch(100)
     train_step.run(feed_dict={x: batch[0], y_: batch[1]})
+  print("training done, performing other functions.")
   correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
   accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
   summaries, _, train_accuracy = sess.run([merged, train_step, accuracy],
@@ -118,6 +120,7 @@ def main(_):
                x: mnist.test.images,
                y_: mnist.test.labels
            })
+  train_writer.add_summary(summaries)
   print('training accuracy %g' % train_accuracy)
   print('Done training!')
 
